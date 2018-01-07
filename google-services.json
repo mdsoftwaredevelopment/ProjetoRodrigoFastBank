@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1073050182691",
+    "firebase_url": "https://projetorodrigo-8bdc0.firebaseio.com",
+    "project_id": "projetorodrigo-8bdc0",
+    "storage_bucket": "projetorodrigo-8bdc0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073050182691:android:ec3a4d2893e05c72",
+        "android_client_info": {
+          "package_name": "morgado.mdsoftware.projetorodrigo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1073050182691-ulecu0ura4gekml5nl8l4dgur84g47vr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHGKyOH3i0_5Cv-oRiiDnKj1m1idLQFm4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

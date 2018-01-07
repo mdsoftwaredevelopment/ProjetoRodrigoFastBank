@@ -1,0 +1,10 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="titulo">28dp</dimen>
+    <dimen name="aviso">32dp</dimen>
+    <dimen name="text">16dp</dimen>
+    <dimen name="descriçãoDoEditText">18dp</dimen>
+    <dimen name="textBusca">14dp</dimen>
+    <dimen name="textTipoDeContato">16dp</dimen>
+
+</resources>
