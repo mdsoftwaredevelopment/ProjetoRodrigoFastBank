@@ -24,11 +24,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 
 public class RegistrarUsuario extends AppCompatActivity {
     private FirebaseAuth mAuth;
     ProgressDialog progressDialog;
+    Set set = new HashSet();
+    Map<String, Object> map;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +117,7 @@ public class RegistrarUsuario extends AppCompatActivity {
     public void tipoConta(){
 
         // Usuários -> Comum/Administrador/ -> usuárioID
-        final DatabaseReference regMonitoria = FirebaseDatabase.getInstance().getReference().child("Usuários").child("Comum");
+        final DatabaseReference regMonitoria = FirebaseDatabase.getInstance().getReference().child("Usuários").child("Comum").child(mAuth.getCurrentUser().getUid());
         Usuario usuario = new Usuario();
         usuario.setId(mAuth.getCurrentUser().getUid());
         regMonitoria.setValue(usuario);
@@ -129,11 +134,19 @@ public class RegistrarUsuario extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    map = (Map<String, Object>) dataSnapshot.getValue();
+                }
+                try {
+                    set = map.keySet();
+                }catch (NullPointerException n){
+                    // erro tratado
+                }
 
-                    Log.i("SCRIPT", "ENTROU NO FOR");
-
-                    String x = d.getValue(String.class);
-                    if (x.equals(mAuth.getCurrentUser().getUid())){
+                int cont = 0;
+                for (Object i : set) {
+                    String palavra = (String) i;
+                    Log.i("Makers",palavra);
+                    if (palavra.equals(mAuth.getCurrentUser().getUid())){
 
                         Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
                         Bundle bundle = new Bundle();
@@ -144,13 +157,20 @@ public class RegistrarUsuario extends AppCompatActivity {
                         startActivity(intent);
 
                     }else{
-                        conferirContaAdmin();
+                        cont = cont+1;
+                        if (cont==set.size()){
+                            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("Tipo","admin");
+                            intent.putExtras(bundle);
+                            progressDialog.dismiss();
+                            Toast.makeText(RegistrarUsuario.this,"Cadastrado com sucesso",Toast.LENGTH_SHORT).show();
+                            startActivity(intent);
+                        }
                     }
 
                 }
-
             }
-
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -160,6 +180,7 @@ public class RegistrarUsuario extends AppCompatActivity {
 
 
     }
+
 
 
     public void conferirContaAdmin(){
@@ -198,4 +219,5 @@ public class RegistrarUsuario extends AppCompatActivity {
         });
 
     }
+
 }
