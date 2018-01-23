@@ -89,13 +89,8 @@ public class Login extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 //if the task is successfull
                 if (task.isSuccessful()) {
-                    progressDialog.dismiss();
-
-        
 
                     conferirConta();
-
-                    finish();
 
                 } else {
 
@@ -146,20 +141,65 @@ public class Login extends AppCompatActivity {
                         bundle.putString("Tipo","comum");
                         intent.putExtras(bundle);
                         progressDialog.dismiss();
-                        Toast.makeText(Login.this,"Login com sucesso",Toast.LENGTH_SHORT).show();
+                     //   Toast.makeText(Login.this,"Cadastrado com sucesso",Toast.LENGTH_SHORT).show();
                         startActivity(intent);
 
                     }else{
                         cont = cont+1;
                         if (cont==set.size()){
-                            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putString("Tipo","admin");
-                            intent.putExtras(bundle);
-                            progressDialog.dismiss();
-                            Toast.makeText(Login.this,"Login com sucesso",Toast.LENGTH_SHORT).show();
-                            startActivity(intent);
+
+                            final DatabaseReference regMonitoria = FirebaseDatabase.getInstance().getReference().child("Usuários").child("Comum");
+
+                            regMonitoria.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot d : dataSnapshot.getChildren()) {
+                                        map = (Map<String, Object>) dataSnapshot.getValue();
+                                    }
+                                    try {
+                                        set = map.keySet();
+                                    }catch (NullPointerException n){
+                                        // erro tratado
+                                    }
+
+                                    int cont = 0;
+                                    for (Object i : set) {
+                                        String palavra = (String) i;
+                                        Log.i("Makers", palavra);
+                                        if (palavra.equals(mAuth.getCurrentUser().getUid())) {
+
+                                            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                                            Bundle bundle = new Bundle();
+                                            bundle.putString("Tipo", "Admim");
+                                            intent.putExtras(bundle);
+                                            progressDialog.dismiss();
+
+                                            startActivity(intent);
+
+                                        }
+                                        else{
+                                            cont = cont+1;
+                                            if (cont==set.size()){
+                                                progressDialog.dismiss();
+                                                startActivity(new Intent(getApplicationContext(),Relatorio.class));
+                                                Toast.makeText(Login.this, "Gerente", Toast.LENGTH_SHORT).show();
+
+                                            }
+                                        }
+                                    }
+
+
+
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
                         }
+
                     }
 
                 }
@@ -173,8 +213,6 @@ public class Login extends AppCompatActivity {
 
 
     }
-
-
 
     public void conferirContaAdmin(){
 

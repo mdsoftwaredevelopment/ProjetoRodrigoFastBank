@@ -11,7 +11,23 @@ public class Tarefa {
     private LatLng latLng;
     private String versão;
     private String endereço,numero,localidade,areaAdministrativa, pais, lat,lng;
+    private String bancoProxUm, bancoProxDois;
 
+    public String getBancoProxUm() {
+        return bancoProxUm;
+    }
+
+    public void setBancoProxUm(String bancoProxUm) {
+        this.bancoProxUm = bancoProxUm;
+    }
+
+    public String getBancoProxDois() {
+        return bancoProxDois;
+    }
+
+    public void setBancoProxDois(String bancoProxDois) {
+        this.bancoProxDois = bancoProxDois;
+    }
 
     public String getLat() {
         return lat;

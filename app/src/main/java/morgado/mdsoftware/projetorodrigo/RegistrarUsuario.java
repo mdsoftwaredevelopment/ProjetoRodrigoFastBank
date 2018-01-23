@@ -159,14 +159,57 @@ public class RegistrarUsuario extends AppCompatActivity {
                     }else{
                         cont = cont+1;
                         if (cont==set.size()){
-                            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putString("Tipo","admin");
-                            intent.putExtras(bundle);
-                            progressDialog.dismiss();
-                            Toast.makeText(RegistrarUsuario.this,"Cadastrado com sucesso",Toast.LENGTH_SHORT).show();
-                            startActivity(intent);
+
+                            final DatabaseReference regMonitoria = FirebaseDatabase.getInstance().getReference().child("Usuários").child("Comum");
+
+                                regMonitoria.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                                            map = (Map<String, Object>) dataSnapshot.getValue();
+                                        }
+                                        try {
+                                            set = map.keySet();
+                                        }catch (NullPointerException n){
+                                            // erro tratado
+                                        }
+
+                                        int cont = 0;
+                                        for (Object i : set) {
+                                            String palavra = (String) i;
+                                            Log.i("Makers", palavra);
+                                            if (palavra.equals(mAuth.getCurrentUser().getUid())) {
+
+                                                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                                                Bundle bundle = new Bundle();
+                                                bundle.putString("Tipo", "Admim");
+                                                intent.putExtras(bundle);
+                                                progressDialog.dismiss();
+
+                                                startActivity(intent);
+
+                                            }
+                                            else{
+                                                cont = cont+1;
+                                                if (cont==set.size()){
+                                                    Toast.makeText(RegistrarUsuario.this, "Gerente", Toast.LENGTH_SHORT).show();
+
+                                                }
+                                            }
+                                        }
+
+
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
                         }
+
                     }
 
                 }

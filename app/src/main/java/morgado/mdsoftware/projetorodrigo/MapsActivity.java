@@ -5,6 +5,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -46,6 +47,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -58,26 +60,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationManager locationManager;
     private GoogleMap mMap;
     private int cont = 0;
-    EditText procurarTarefasEdit;
+    EditText procurarTarefasEdit, endProxUm, endProxDois;
 
     View mapView;
     String tipo;
-    private MarkerOptions markerLeitura;
+
     FirebaseAuth mAuth;
+   private Map mapBancosGeral ;
+    public static String bancoProx1, bancoProx2;
+
 
     //  var de leitura de BD
     Set set = new HashSet();
     Map<String, Object> map;
+
+    Bundle bundle;
+    public  DatabaseReference regMarkers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
+/*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarMap);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
+        */
         ImageButton procurarTarefa = (ImageButton) findViewById(R.id.butProcurarTarefa);
         procurarTarefasEdit = (EditText)findViewById(R.id.procurarTarefa);
+        endProxUm = (EditText)findViewById(R.id.bancoProx1);
+        endProxDois = (EditText)findViewById(R.id.bancoProx2);
 
         Intent intent = getIntent();
         if (intent != null){
@@ -88,9 +99,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (tipo.equals("comum")){
                     procurarTarefa.setVisibility(View.GONE);
                     procurarTarefasEdit.setVisibility(View.GONE);
+                    endProxUm.setVisibility(View.GONE);
+                    endProxDois.setVisibility(View.GONE);
                 }else {
                     procurarTarefa.setVisibility(View.VISIBLE  );
                     procurarTarefasEdit.setVisibility(View.VISIBLE);
+                    endProxUm.setVisibility(View.VISIBLE);
+                    endProxDois.setVisibility(View.VISIBLE);
                 }
 
             }
@@ -108,7 +123,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         procurarTarefa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                encontrarEndereco(procurarTarefasEdit.getText().toString());
+                encontrarEndereco(procurarTarefasEdit.getText().toString(),endProxUm.getText().toString(),endProxDois.getText().toString());
             }
         });
     }
@@ -126,9 +141,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mapBancosGeral = new HashMap();
 
         // Add a marker in Sydney and move the camera
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
 
         if (mapView != null &&
                 mapView.findViewById(Integer.parseInt("1")) != null) {
@@ -156,12 +173,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                return false;
-            }
-        });
 
         mAuth = FirebaseAuth.getInstance();
         DatabaseReference regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers");
@@ -180,7 +191,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (Object i : set) {
 
                     String palavra = (String) i;
-                    Log.i("Makers",palavra);
+
+                    Log.i("TesteNomeMarker",palavra);
                     lerLatLng(palavra);
 
                 }
@@ -196,10 +208,84 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick(Marker marker) {
 
-
+                Object ob = marker.getTag();
+                MarkerPersonalizado mp = (MarkerPersonalizado)ob;
+                Log.i("TesteA",mp.getId());
                 return false;
             }
         });
+
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                Object ob = marker.getTag();
+                MarkerPersonalizado mp = (MarkerPersonalizado)ob;
+           //
+              //  Log.i("TesteB",bancos.getEndereçoBancoProxUm());
+
+                ArrayList auxList = new ArrayList();
+                auxList.add(mp.getEndereçoBancoProxUm());
+                auxList.add(mp.getEndereçoBancoProxDois());
+
+                for (int i=0;i<auxList.size();i++){
+                    String endereco = (String)auxList.get(i);
+
+                    List<Address> list = new ArrayList<Address>();
+                    Geocoder geocoder = new Geocoder(MapsActivity.this);
+                    try {
+                        list = (ArrayList<Address>) geocoder.getFromLocationName(endereco, 1);
+                    } catch (IOException e) {
+                     e.printStackTrace();
+                    }
+                    catch (IllegalArgumentException e){
+                        e.printStackTrace();
+                    }
+                    if(list != null && list.size() > 0) {
+                        Address a = list.get(0);
+
+                        double auxLat = a.getLatitude();
+                        double auxLng = a.getLongitude();
+
+                        String idProx =  (""+auxLat +"_"+ auxLng).replace(".","").replace("-","sM_");
+
+                        if (i==0){
+                           mp.setIdBancoProxUm(idProx);
+                        }else{
+                            if (i==1){
+                                mp.setIdBancoProxDois(idProx);
+
+                                Intent intentAux1 = new Intent(getApplicationContext(), Estatisticas.class);
+
+                                Bundle bundle = new Bundle();
+                                bundle.putString("agencia",marker.getTitle());
+                                bundle.putString("Valor",""+mp.getValor());
+                                bundle.putString("status",mp.getStatus());
+                                bundle.putString("prox1Endereco",mp.getEndereçoBancoProxUm());
+                                bundle.putString("prox2Endereco",mp.getEndereçoBancoProxDois());
+                                MarkerPersonalizado banco1 = (MarkerPersonalizado) mapBancosGeral.get("sM_22876982899999998_sM_433347878");
+                                MarkerPersonalizado banco2 = (MarkerPersonalizado) mapBancosGeral.get("sM_22872634299999998_sM_433396505");
+                                bundle.putString("proxValor1", ""+banco1.getValor());
+                                bundle.putString("proxValor2", ""+banco2.getValor());
+                                intentAux1.putExtras(bundle);
+                                startActivity(intentAux1);
+
+                            }
+                        }
+
+                    }else{
+                        Toast.makeText(MapsActivity.this,"Local não encontrado",Toast.LENGTH_SHORT).show();
+                    }
+
+
+
+
+                }
+
+
+            }
+        });
+
+
     }
 
     // Métodos do ciclo de vida do Fragment
@@ -343,24 +429,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(new Intent(getApplicationContext(), Login.class));
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.tarefasMenu:
-             //   irParaTarefas();
-                return true;
-            /*
-            case R.id.deslogar:
-                irParaDeslogar();
-                return true;
-             */
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
-    public void encontrarEndereco(String endereco){
+
+    public void encontrarEndereco(String endereco, String prox1, String prox2){
         List<Address> list = new ArrayList<Address>();
         Geocoder geocoder = new Geocoder(this);
 
@@ -379,20 +450,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             double auxLat = a.getLatitude();
             double auxLng = a.getLongitude();
 
-
-
             String addressN = "Agencia: "+ a.getThoroughfare()  + "," ; // Rua
-            //   address += "Postal Code: " + addressList.get(0).getPostalCode() + "\n"; // Postal Code
-             // addressN += "" + a.getFeatureName();   // Numero
-         //   addressN += "Bairro: " + a.getSubLocality() + ";\n"; // Bairro
-          //  addressN += "" + a.getLocality() + " ";
-           // addressN += ", " + a.getAdminArea() + " ";
-           // addressN += ", " + a.getCountryName() + ".";
-
 
             LatLng latLng = new LatLng(auxLat,auxLng);
 
-            customAddMarker(latLng, addressN);
+            customAddMarker(latLng, addressN, prox1, prox2);
 
         }else{
             Toast.makeText(MapsActivity.this,"Local não encontrado",Toast.LENGTH_SHORT).show();
@@ -402,11 +464,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void customAddMarker(LatLng latLng, String descricao ){
+    public void customAddMarker(LatLng latLng, String descricao, String banco1, String banco2 ){
         BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.bb);
 
         MarkerOptions marker = new MarkerOptions().position(
-                new LatLng(latLng.latitude, latLng.longitude)).title("Teste").snippet(descricao).icon(icon).draggable(true );
+                new LatLng(latLng.latitude, latLng.longitude)).icon(icon);
 
 
 
@@ -417,21 +479,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
        DatabaseReference regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child((""+latLng.latitude +"_"+ latLng.longitude).replace(".","").replace("-","sM_"));
         Tarefa tarefa = new Tarefa();
-      //  tarefa.setEndereço(descricao);
+      //tarefa.setEndereço(descricao);
         tarefa.setLatLng(latLng);
+
         regMarkers.setValue(tarefa);
 
         regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child((""+latLng.latitude +"_"+ latLng.longitude).replace(".","").replace("-","sM_")).child("Endereco");
         tarefa = new Tarefa();
         tarefa.setEndereço(descricao);
+
         regMarkers.setValue(tarefa);
 
+        regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child((""+latLng.latitude +"_"+ latLng.longitude).replace(".","").replace("-","sM_")).child("BancosProximos");
+        tarefa = new Tarefa();
+        tarefa.setBancoProxUm(banco1);
+        tarefa.setBancoProxDois(banco2);
 
+        regMarkers.setValue(tarefa);
+
+        regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child((""+latLng.latitude +"_"+ latLng.longitude).replace(".","").replace("-","sM_")).child("IDBancosPróximos");
+        tarefa = new Tarefa();
+
+        tarefa.setBancoProxUm(banco1);
+        tarefa.setBancoProxDois(banco2);
 
 
     }
 
+
     public void lerLatLng(final String id){
+        Log.i("id","idaaaa "+ id);
         final ArrayList arrayList = new ArrayList();
         DatabaseReference regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child(id).child("latLng");
         regMarkers.addValueEventListener(new ValueEventListener() {
@@ -444,28 +521,74 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
                 }
-                final BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.bb);
+
                 try {
 
-                     //mMap.addMarker(markerLeitura);
-
-                    DatabaseReference regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child(id).child("Endereco");
+               DatabaseReference regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child(id).child("Endereco");
                     regMarkers.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
+
                             for (DataSnapshot d : dataSnapshot.getChildren()) {
 
-                                String aux = d.getValue(String.class);
-                                markerLeitura = new MarkerOptions().position(
-                                        new LatLng( Double.parseDouble(""+ arrayList.get(0)) ,  Double.parseDouble(""+ arrayList.get(1)))).icon(icon);
+                                 String aux = d.getValue(String.class);
+
+                                final BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.bb);
+                                MarkerOptions markerLeitura = new MarkerOptions().position(
+                                        new LatLng( Double.parseDouble(""+ arrayList.get(0)) ,  Double.parseDouble(""+ arrayList.get(1)))).icon(icon).title(aux);
                                 double numero = Math.random() * 20;
-                                int valorAleatorio = ((int) Math.round(numero));
+                                int valorAleatorio = ((int) Math.round(numero) * 3);
 
-                                markerLeitura.title(aux).snippet("Numero de pessoas: "+valorAleatorio + " Tempo de espera: "+valorAleatorio*3 +"m");
-                                mMap.addMarker(markerLeitura);
+                                final MarkerPersonalizado tag = new MarkerPersonalizado();
+                                tag.setLatitude(arrayList.get(0).toString());
+                                tag.setLongetude(arrayList.get(1).toString());
+                                tag.setValor(valorAleatorio);
+                                tag.setId(id);
 
+                                int tempo = valorAleatorio;
+                                if (tempo <= 10){
+                                    markerLeitura.snippet("Tempo de espera: Baixo");
+                                    tag.setStatus("baixo");
+                                }else{
+                                    if (tempo >10 && tempo<=20){
+                                        markerLeitura.snippet("Tempo de espera: medio");
+                                        tag.setStatus("medio");
+                                    }else{
+                                        if (tempo > 20){
+                                            markerLeitura.snippet("Tempo de espera: alto");
+                                            tag.setStatus("Alto");
+                                        }
+                                    }
+
+                                }
+
+
+                                Marker marker =  mMap.addMarker(markerLeitura);
+                                marker.setTag(tag);
+
+                                DatabaseReference regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child(id).child("BancosProximos");
+                                regMarkers.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        ArrayList list = new ArrayList();
+                                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+
+                                            String aux = d.getValue(String.class);
+                                            list.add(aux);
+                                        }
+                                        tag.setEndereçoBancoProxUm(list.get(0).toString());
+                                        tag.setEndereçoBancoProxDois(list.get(1).toString());
+                                        mapBancosGeral.put(id,tag);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
 
                             }
+
                         }
 
                         @Override
@@ -488,6 +611,52 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
+
+
+
+/*
+    public void lerPróximos(final String id){
+        final ArrayList list = new ArrayList();
+        regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child(id).child("BancosProximos");
+        regMarkers.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+
+                    String aux = d.getValue(String.class);
+                    list.add(aux);
+                }
+                Intent intent = new Intent(getApplicationContext(), Estatisticas.class);
+                bancoProx1 = list.get(0).toString();
+                bancoProx2 = list.get(1).toString();
+                bundle.putString("banco1",bancoProx1); // Endereço Banco prox 1
+
+                Object ob = mapBancosGeral.get(bancoProx1);
+                MarkerPersonalizado mp = (MarkerPersonalizado)ob;
+
+                bundle.putInt("banco1Valor",mp.getValor());
+
+                bundle.putString("banco2",bancoProx2); // Endereço banco prox 2
+                bundle.putInt("banco2Valor",((MarkerPersonalizado)mapBancosGeral.get(bancoProx2)).getValor());
+                intent.putExtras(bundle);
+
+                startActivity(intent);
+                finish();
+
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+*/
 
 
 

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -13,8 +14,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public class Menu extends AppCompatActivity {
     //   private MaterialDialog mMaterialDialog;
+    Set set = new HashSet();
+    Map<String, Object> map;
     private String VERSAO = "0.1";
 
     @Override
@@ -56,6 +65,7 @@ public class Menu extends AppCompatActivity {
         startActivity(new Intent(getApplicationContext(), RegistrarUsuario.class));
 
     }
+
 
 /*
     public void showUpdateAppDialog(){
