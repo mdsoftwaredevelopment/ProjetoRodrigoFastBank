@@ -50,13 +50,9 @@ public class Estatisticas extends AppCompatActivity {
                 valorBanco1.setText(banco1Valor + " minutos");
                 valorBanco2.setText(banco2Valor + " minutos \n \n");
 
-                int n1 =(int) Math.round(Math.random() * 20)*2;;
-
-
-                int n2 = (int) Math.round(Math.random() * 20)*2;
-
-
-                int n3 = (int) Math.round(Math.random() * 20)*2;;
+                int n1 =params.getInt("n1G");
+                int n2 =params.getInt("n2G");
+                int n3 =params.getInt("n3G");
 
 
                 strURL = "https://chart.googleapis.com/chart?" +

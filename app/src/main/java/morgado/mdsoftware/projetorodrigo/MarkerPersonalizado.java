@@ -13,6 +13,31 @@ public class MarkerPersonalizado {
     String endereçoBancoProxUm, endereçoBancoProxDois;
     String idBancoProxUm, idBancoProxDois;
     String status;
+    int n1G, n2G, n3G;
+
+    public int getN1G() {
+        return n1G;
+    }
+
+    public void setN1G(int n1G) {
+        this.n1G = n1G;
+    }
+
+    public int getN2G() {
+        return n2G;
+    }
+
+    public void setN2G(int n2G) {
+        this.n2G = n2G;
+    }
+
+    public int getN3G() {
+        return n3G;
+    }
+
+    public void setN3G(int n3G) {
+        this.n3G = n3G;
+    }
 
     public String getStatus() {
         return status;

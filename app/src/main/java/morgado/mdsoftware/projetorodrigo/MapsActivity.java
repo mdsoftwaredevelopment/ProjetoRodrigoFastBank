@@ -262,10 +262,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 bundle.putString("status",mp.getStatus());
                                 bundle.putString("prox1Endereco",mp.getEndereçoBancoProxUm());
                                 bundle.putString("prox2Endereco",mp.getEndereçoBancoProxDois());
+
+
+                            //    MarkerPersonalizado banco1 = (MarkerPersonalizado) mapBancosGeral.get("sM_22876982899999998_sM_433347878");
                                 MarkerPersonalizado banco1 = (MarkerPersonalizado) mapBancosGeral.get("sM_22876982899999998_sM_433347878");
                                 MarkerPersonalizado banco2 = (MarkerPersonalizado) mapBancosGeral.get("sM_22872634299999998_sM_433396505");
+
+
                                 bundle.putString("proxValor1", ""+banco1.getValor());
                                 bundle.putString("proxValor2", ""+banco2.getValor());
+                                bundle.putInt("n1G",+mp.getN1G());
+                                bundle.putInt("n2G",+mp.getN2G());
+                                bundle.putInt("n3G",+mp.getN3G());
                                 intentAux1.putExtras(bundle);
                                 startActivity(intentAux1);
 
@@ -543,25 +551,48 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 tag.setLatitude(arrayList.get(0).toString());
                                 tag.setLongetude(arrayList.get(1).toString());
                                 tag.setValor(valorAleatorio);
+
+
+                                int n1 = (int)Math.round(Math.random() * 20)*2;
+                                int n2 =(int)Math.round(Math.random() * 20)*2;
+                                int n3 = (int)Math.round(Math.random() * 20)*2;
+
                                 tag.setId(id);
 
                                 int tempo = valorAleatorio;
                                 if (tempo <= 10){
                                     markerLeitura.snippet("Tempo de espera: Baixo");
                                     tag.setStatus("baixo");
+                                    while (n1<1){
+                                        if (n1 < 1){
+                                            n1 = (int)Math.round(Math.random() * 20)*2;
+                                        }
+                                    }
                                 }else{
                                     if (tempo >10 && tempo<=20){
                                         markerLeitura.snippet("Tempo de espera: medio");
                                         tag.setStatus("medio");
+                                        while (n2<1){
+                                            if (n2 < 1){
+                                                n2 = (int)Math.round(Math.random() * 20)*2;
+                                            }
+                                        }
                                     }else{
                                         if (tempo > 20){
                                             markerLeitura.snippet("Tempo de espera: alto");
                                             tag.setStatus("Alto");
+                                            while (n3<1){
+                                                if (n3 < 1){
+                                                    n3 = (int)Math.round(Math.random() * 20)*2;
+                                                }
+                                            }
                                         }
                                     }
 
                                 }
-
+                                tag.setN1G(n1);
+                                tag.setN2G(n2);
+                                tag.setN3G(n3);
 
                                 Marker marker =  mMap.addMarker(markerLeitura);
                                 marker.setTag(tag);
@@ -611,53 +642,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
-
-
-/*
-    public void lerPróximos(final String id){
-        final ArrayList list = new ArrayList();
-        regMarkers = FirebaseDatabase.getInstance().getReference().child("Bancos").child("Makers").child(id).child("BancosProximos");
-        regMarkers.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot d : dataSnapshot.getChildren()) {
-
-                    String aux = d.getValue(String.class);
-                    list.add(aux);
-                }
-                Intent intent = new Intent(getApplicationContext(), Estatisticas.class);
-                bancoProx1 = list.get(0).toString();
-                bancoProx2 = list.get(1).toString();
-                bundle.putString("banco1",bancoProx1); // Endereço Banco prox 1
-
-                Object ob = mapBancosGeral.get(bancoProx1);
-                MarkerPersonalizado mp = (MarkerPersonalizado)ob;
-
-                bundle.putInt("banco1Valor",mp.getValor());
-
-                bundle.putString("banco2",bancoProx2); // Endereço banco prox 2
-                bundle.putInt("banco2Valor",((MarkerPersonalizado)mapBancosGeral.get(bancoProx2)).getValor());
-                intent.putExtras(bundle);
-
-                startActivity(intent);
-                finish();
-
-
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-
-    }
-*/
-
-
 
 }
